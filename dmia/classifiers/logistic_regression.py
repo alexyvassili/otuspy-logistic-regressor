@@ -48,12 +48,9 @@ class LogisticRegression:
             # Hint: Use np.random.choice to generate indices. Sampling with         #
             # replacement is faster than sampling without replacement.              #
             #########################################################################
-            indexes = np.random.choice(np.arange(num_train), batch_size)
-            X_batch = X[indexes, :]
+            indexes = np.random.choice(num_train, batch_size)
+            X_batch = X[indexes]
             y_batch = y[indexes]
-            # scores = np.dot(X_batch, self.w)
-            # scores = np.dot(X_batch, self.w)
-            # predictions = self.sigmoid(scores)
             #########################################################################
             #                       END OF YOUR CODE                                #
             #########################################################################
@@ -67,7 +64,7 @@ class LogisticRegression:
             # Update the weights using the gradient and the learning rate.          #
             #########################################################################
 
-            self.w += learning_rate * gradW
+            self.w -= learning_rate * gradW
 
             #########################################################################
             #                       END OF YOUR CODE                                #
@@ -99,16 +96,8 @@ class LogisticRegression:
         # Hint: It might be helpful to use np.vstack and np.sum                   #
         ###########################################################################
 
-        # X = check_array(X, accept_sparse='csr')
-
-        n_features = self.w.shape[0]
-        if X.shape[1] != n_features:
-            raise ValueError("X has %d features per sample; expecting %d"
-                             % (X.shape[1], n_features))
-
-        y_proba = self.safe_sparse_dot(X, self.w,
-                                 dense_output=True)
-        softmax(y_proba, copy=False)
+        proba = self.sigmoid(X)
+        y_proba = np.vstack((1 - proba, proba)).T
 
         ###########################################################################
         #                           END OF YOUR CODE                              #
@@ -133,7 +122,7 @@ class LogisticRegression:
         # Implement this method. Store the predicted labels in y_pred.            #
         ###########################################################################
         y_proba = self.predict_proba(X, append_bias=True)
-        # y_pred = y_proba
+        y_pred = np.argmax(y_proba, axis=1)
 
         ###########################################################################
         #                           END OF YOUR CODE                              #
@@ -170,9 +159,8 @@ class LogisticRegression:
     def append_biases(X):
         return sparse.hstack((X, np.ones(X.shape[0])[:, np.newaxis])).tocsr()
 
-    @staticmethod
-    def sigmoid(scores):
-        return 1 / (1 + np.exp(-scores))
+    def sigmoid(self, X):
+        return 1 / (1 + np.exp(-X.dot(self.w)))
 
     @staticmethod
     def safe_sparse_dot(a, b, dense_output=False):

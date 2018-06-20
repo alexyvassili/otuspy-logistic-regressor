@@ -143,6 +143,14 @@ class LogisticRegression:
         loss = 0
         # Compute loss and gradient. Your code should not contain python loops.
 
+        """Loss = -(1 / m) * sum(yi * log(pi) + (1 - yi) * log(1 - pi))"""
+        """Grad = (1/m) (pi - yi) * xi"""
+        m = X_batch.shape[0]
+        pi = self.sigmoid( X_batch )
+
+        loss = -(1 / m ) * np.sum((y_batch * np.log(pi) + (1 - y_batch) * np.log(1 - pi)))
+
+        dw = (1 / m) * (pi - y_batch) * X_batch
 
         # Right now the loss is a sum over all training examples, but we want it
         # to be an average instead so we divide by num_train.
@@ -152,6 +160,8 @@ class LogisticRegression:
         # Add regularization to the loss and gradient.
         # Note that you have to exclude bias term in regularization.
 
+        loss += (reg / (2 * m)) * np.square(self.w)
+        dw += (reg / m) * self.w
 
         return loss, dw
 

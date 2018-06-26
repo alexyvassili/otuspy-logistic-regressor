@@ -160,7 +160,7 @@ class LogisticRegression:
         # Add regularization to the loss and gradient.
         # Note that you have to exclude bias term in regularization.
 
-        loss += (reg / (2 * m)) * np.square(self.w)
+        loss += (reg / (2 * m)) * np.sum(np.square(self.w))
         dw += (reg / m) * self.w
 
         return loss, dw

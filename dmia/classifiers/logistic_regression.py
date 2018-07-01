@@ -49,7 +49,7 @@ class LogisticRegression:
             # replacement is faster than sampling without replacement.              #
             #########################################################################
             indexes = np.random.choice(num_train, batch_size)
-            X_batch = X[indexes]
+            X_batch = X[indexes, :]
             y_batch = y[indexes]
             #########################################################################
             #                       END OF YOUR CODE                                #
@@ -96,7 +96,7 @@ class LogisticRegression:
         # Hint: It might be helpful to use np.vstack and np.sum                   #
         ###########################################################################
 
-        proba = self.sigmoid(X)
+        proba = self.sigmoid(X.dot(self.w.T))
         y_proba = np.vstack((1 - proba, proba)).T
 
         ###########################################################################
@@ -146,9 +146,10 @@ class LogisticRegression:
         """Loss = -(1 / m) * sum(yi * log(pi) + (1 - yi) * log(1 - pi))"""
         """Grad = (1/m) (pi - yi) * xi"""
         m = X_batch.shape[0]
-        pi = self.sigmoid( X_batch )
+        pi = self.sigmoid(X_batch.dot(self.w))
 
-        loss = -(1 / m ) * np.sum((y_batch * np.log(pi) + (1 - y_batch) * np.log(1 - pi)))
+        loss = -np.dot(y_batch, np.log(pi)) - np.dot((1 - y_batch), np.log(1.0-pi))
+        loss = loss / m
 
         dw = (1 / m) * (pi - y_batch) * X_batch
 
@@ -160,8 +161,8 @@ class LogisticRegression:
         # Add regularization to the loss and gradient.
         # Note that you have to exclude bias term in regularization.
 
-        loss += (reg / (2 * m)) * np.sum(np.square(self.w))
-        dw += (reg / m) * self.w
+        loss += (reg / (2.0 * m)) * np.dot(self.w[:-1], self.w[:-1])
+        dw[:-1] = dw[:-1] + (reg * self.w[:-1]) / m
 
         return loss, dw
 
@@ -169,8 +170,8 @@ class LogisticRegression:
     def append_biases(X):
         return sparse.hstack((X, np.ones(X.shape[0])[:, np.newaxis])).tocsr()
 
-    def sigmoid(self, X):
-        return 1 / (1 + np.exp(-X.dot(self.w)))
+    def sigmoid(self, x):
+        return 1.0 / (1.0 + np.exp(-x))
 
     @staticmethod
     def safe_sparse_dot(a, b, dense_output=False):
